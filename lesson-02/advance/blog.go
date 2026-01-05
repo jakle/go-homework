@@ -5,49 +5,38 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"log"
-	"time"
 )
 
 type User struct {
-	ID        uint `gorm:"primaryKey"`
+	gorm.Model
 	Name      string
 	Email     string `gorm:"uniqueIndex"`
 	Posts     []Post `gorm:"foreignKey:UserID"`
 	PostCount uint   `gorm:"default:0"` // 用于统计用户文章数量
-	CreatedAt time.Time
-	UpdatedAt time.Time
 }
 
 type Post struct {
-	ID        uint `gorm:"primaryKey"`
-	Title     string
-	Content   string
-	UserID    uint      // Belongs To User
-	User      User      `gorm:"foreignKey:UserID"`
-	Comments  []Comment `gorm:"foreignKey:PostID"`
-	Tags      []Tag     `gorm:"many2many:post_tags;"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"` // 软删除
+	gorm.Model
+	Title    string
+	Content  string
+	UserID   uint      // Belongs To User
+	User     User      `gorm:"foreignKey:UserID"`
+	Comments []Comment `gorm:"foreignKey:PostID"`
+	Tags     []Tag     `gorm:"many2many:post_tags;"`
 }
 
 type Comment struct {
-	ID        uint `gorm:"primaryKey"`
-	Content   string
-	UserID    uint
-	PostID    uint
-	Post      Post `gorm:"foreignKey:PostID"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"` // 软删除
+	gorm.Model
+	Content string
+	UserID  uint
+	PostID  uint
+	Post    Post `gorm:"foreignKey:PostID"`
 }
 
 type Tag struct {
-	ID        uint   `gorm:"primaryKey"`
-	Name      string `gorm:"uniqueIndex"`
-	Posts     []Post `gorm:"many2many:post_tags;"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	gorm.Model
+	Name  string `gorm:"uniqueIndex"`
+	Posts []Post `gorm:"many2many:post_tags;"`
 }
 
 // PostWithCount 用于包含评论数量的文章
@@ -148,11 +137,11 @@ func PublishPostWithTags(db *gorm.DB, post *Post, tagIDs []uint) error {
 
 // 发布评论函数
 func PublishComment(db *gorm.DB, userID, postID uint, content string) (*Comment, error) {
+
 	comment := &Comment{
-		Content:   content,
-		UserID:    userID,
-		PostID:    postID,
-		CreatedAt: time.Now(),
+		Content: content,
+		UserID:  userID,
+		PostID:  postID,
 	}
 
 	err := db.Transaction(func(tx *gorm.DB) error {
